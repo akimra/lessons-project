@@ -1,0 +1,29 @@
+###
+GET http://localhost:3000/products
+
+###Получить все статьи без параметров
+GET http://localhost:3000/articles
+
+###Получить все статьи с параметрами выборки
+GET http://localhost:3000/articles/?filter=id&filter_from=0&filter_to=3&sort_by=title&sort_dir=DESC
+
+###Создать статью
+POST http://localhost:3000/articles
+content-type: application/json
+
+{
+  "title": "CustomTitle",
+  "content": "lorem ipsum lorem ipsum",
+  "ProductId": null
+}
+
+###Изменить статью
+PATCH http://localhost:3000/articles
+content-type: application/json
+
+{
+  "id": 2,
+  "title": "modified2",
+  "content": "modified2 lorem ipsum lorem ipsum",
+  "ProductId": 1
+}
