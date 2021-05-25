@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <p>Загрузить файл с данными Lessons и LessonsDetails</p>
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="entities">
+    <input type="submit" value="Отправить">
+  </form>
+
+  <p>Загрузить файл лога, обновить файл с данными и получить результат</p>
+  <form method="patch" enctype="multipart/form-data">
+    <input type="file" name="log" id="fileLog">
+    <input type="submit" value="Обновить файл с данными">
+  </form>
+</body>
+</html>

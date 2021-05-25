@@ -1,4 +1,5 @@
 const express = require('express');
+const fileUpload = require('express-fileupload');
 const path = require('path');
 const morgan = require('morgan');
 const fs = require('fs');
@@ -17,6 +18,12 @@ const logStream = fs.createWriteStream(path.join(__dirname, 'logs', 'http_access
 
 const app = express();
 
+app.use(fileUpload({
+  useTempFiles : true,
+  tempFileDir : '/tmp/',
+  debug: true
+}));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // пишем критичные логи в консоль
@@ -28,7 +35,7 @@ app.use(morgan('common', {
   stream: logStream
 }));
 
-app.use('/home', homeRouter);
+app.use('/', homeRouter);
 
 sequelize.sync()
 .then(() => {
