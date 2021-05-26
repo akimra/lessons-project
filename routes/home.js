@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const router = express.Router();
+const fileHandler = require('../utils/fileHandler');
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -12,8 +13,13 @@ router.post('/', function(req, res) {
     return res.status(400).send('No files found');
   }
 
+  const lessonsFileName = path.join(__dirname, '../', 'files', 'uploaded', 'lessons.csv')
   let file = req.files.entities;
-  file.mv(path.join(__dirname, 'uploaded'));
+  
+  // сохраняем файл и запускаем процесс разбора данных и записи в бд
+  file.mv(lessonsFileName);
+  fileHandler.parseLessons(lessonsFileName);
+  res.send('processing...');
 })
 
 module.exports = router;

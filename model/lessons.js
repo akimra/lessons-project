@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../utils/database/db');
 
-const Lesson = sequelize.define("Article", {
+const Lesson = sequelize.define("Lesson", {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -83,4 +83,4 @@ const Lesson = sequelize.define("Article", {
   }
 });
 
-module.exports = Article;
+module.exports = Lesson;
