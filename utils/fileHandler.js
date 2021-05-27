@@ -8,18 +8,42 @@ const fileHandler = {
     let lessonsArray = [];
 
     csv.parseFile(pathFile, {headers: true})
-    .on('error', error => console.log("FileHandler Error: Cant parse csv", error))
-    .on('headers', headers => {
-      // TODO: validate columns
-      //throw new Error("FileHandler Error: Bad columns");
+    .on('error', err => {
+      console.log("FileHandler Error: Cant parse csv", error);
+      result.error = true;
+      result.reason = 'FileHandler Error: Cant parse csv';
+      result.errorObject = err;
     })
-    .on('data', async row => {
+    .on('data', row => {
       lessonsArray.push(row);
-      //await db.buildLesson(row);
     })
     .on('end', async rowCount => {
       console.log(`${rowCount} rows parsed`);
-      await db.createManyLessons(lessonsArray);
+      try {
+        await db.createManyLessons(lessonsArray);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    return result;
+  },
+
+  patchLogs: async (pathFile) => {
+    let result = {};
+
+    csv.parseFile(pathFile, {headers: true})
+    .on('error', err => {
+      console.log("FileHandler Error: Cant parse csv", error);
+      result.error = true;
+      result.reason = 'FileHandler Error: Cant parse csv';
+      result.errorObject = err;
+    })
+    .on('data', row => {
+      lessonsArray.push(row);
+    })
+    .on('end', async rowCount => {
+      console.log(`${rowCount} patches applied`);
     });
 
     return result;

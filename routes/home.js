@@ -13,21 +13,45 @@ router.post('/', async function(req, res) {
     return res.status(400).send('No files found');
   }
 
+  // сохраним полученный файл
   const lessonsFileName = path.join(__dirname, '../', 'files', 'uploaded', 'lessons.csv');
   let file = req.files.entities;
-   file.mv(lessonsFileName);
+  file.mv(lessonsFileName);
 
-  // сохраняем файл и запускаем процесс разбора данных и записи в бд
-  let result = {};
-  try {
-    result = await fileHandler.parseLessons(lessonsFileName);
-  } catch (error) {
-    res.json(error);
+  // запускаем процесс разбора данных и записи в бд
+  fileHandler.parseLessons(lessonsFileName)
+  .then((result) => {
+    if (result.error) {
+      res.statusCode(500).json(result);
+    }
+    res.status(201).end();
+  })
+  .catch(err => {
+    res.statusCode(500).json({error: true, reason: "FileHandlerError: error while saving lessons in db", errorObject: err})
+  });
+})
+
+router.patch('/', async function(req, res) {
+  if (!req.files || !Object.keys(req.files).length) {
+    return res.status(400).send('No files found');
   }
-  
-  if (result.error) {
-    res.json(result);
-  }
+
+  // сохраним полученный файл
+  const logsFileName = path.join(__dirname, '../', 'files', 'uploaded', 'logs.csv');
+  let file = req.files.log;
+  file.mv(logsFileName);
+
+  // запускаем процесс разбора данных и записи в бд
+  fileHandler.patchLogs(logsFileName)
+  .then((result) => {
+    if (result.error) {
+      res.statusCode(500).json(result);
+    }
+    res.status(201).end();
+  })
+  .catch(err => {
+    res.statusCode(500).json({error: true, reason: "FileHandlerError: error while saving lessons in db", errorObject: err});
+  });
 })
 
 module.exports = router;
