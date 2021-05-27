@@ -6,8 +6,8 @@ const DbProvider = {
   models,
   sequelize,
 
-  createLesson: async (lesson) => {
-    
+  createManyLessons: async (lesson) => {
+    await models.Lesson.bulkCreate(lesson, {validate: true, ignoreDuplicates: true});
   }
 }
 

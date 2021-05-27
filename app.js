@@ -27,7 +27,7 @@ Promise.allSettled(
     fsPromises.mkdir(path.join(__dirname, 'logs'))
   ]
 )
-.then(() => logStream = fs.createWriteStream(path.join(__dirname, 'logs', 'http_access.log'), {flags: 'a'}))
+//.then(() => logStream = fs.createWriteStream(path.join(__dirname, 'logs', 'http_access.log'), {flags: 'a'}))
 .catch(reason => console.log(reason));
 
 logStream = fs.createWriteStream(path.join(__dirname, 'logs', 'http_access.log'), {flags: 'a'});
@@ -51,7 +51,7 @@ app.use(morgan('common', {
 
 app.use('/', homeRouter);
 
-sequelize.sync()
+sequelize.sync({force: true})
 .then(() => {
   app.listen(port, () => console.log(`server is running on ${port}`));
 });

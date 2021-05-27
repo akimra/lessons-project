@@ -2,18 +2,18 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../utils/database/db');
 
 const Lesson = sequelize.define("Lesson", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-    allowNull: false
-  },
+  // id: {
+  //   type: DataTypes.INTEGER,
+  //   primaryKey: true,
+  //   allowNull: false
+  // },
   gen_branch_id: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
   event_id: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     allowNull: false
   },
   event_date: {

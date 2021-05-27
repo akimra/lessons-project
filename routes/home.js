@@ -18,9 +18,9 @@ router.post('/', async function(req, res) {
    file.mv(lessonsFileName);
 
   // сохраняем файл и запускаем процесс разбора данных и записи в бд
-  let result;
+  let result = {};
   try {
-    let result = await fileHandler.parseLessons(lessonsFileName);
+    result = await fileHandler.parseLessons(lessonsFileName);
   } catch (error) {
     res.json(error);
   }
