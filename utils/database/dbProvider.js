@@ -7,7 +7,25 @@ const DbProvider = {
   sequelize,
 
   createManyLessons: async (lesson) => {
-    await models.Lesson.bulkCreate(lesson, {validate: true, ignoreDuplicates: true});
+    lesson.time_from = Date.parse(lesson.time_from);
+    lesson.time_to = Date.parse(lesson.time_to);
+    await models.Lesson.bulkCreate(lesson, {validate: true});
+  },
+
+  patchLesson: async (event, cus) => {
+    if (cus.length > 0) {
+      let mod = await models.Lesson.findAll({
+        where: {
+          event_id: event
+        }
+      });
+      mod.forEach((m) => {
+        if (cus.find((element) => element === mod.customer_id)) {
+          console.log('ALERT!!!!!');
+        }
+      })
+    }
+    
   }
 }
 

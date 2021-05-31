@@ -50,7 +50,7 @@ router.patch('/', async function(req, res) {
     res.status(201).end();
   })
   .catch(err => {
-    res.statusCode(500).json({error: true, reason: "FileHandlerError: error while saving lessons in db", errorObject: err});
+    res.statusCode(500).json({error: true, reason: "FileHandlerError: error while patching", errorObject: err});
   });
 })
 

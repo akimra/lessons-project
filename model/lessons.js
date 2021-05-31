@@ -2,84 +2,69 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../utils/database/db');
 
 const Lesson = sequelize.define("Lesson", {
-  // id: {
-  //   type: DataTypes.INTEGER,
-  //   primaryKey: true,
-  //   allowNull: false
-  // },
-  gen_branch_id: {
+  id: {
     type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  event_id: {
-    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true,
     allowNull: false
   },
-  event_date: {
-    type: DataTypes.DATEONLY,
+  gen_branch_id: {
+    type: DataTypes.INTEGER
+  },
+  event_id: {
+    type: DataTypes.INTEGER,
     allowNull: false
+  },
+  event_date: {
+    type: DataTypes.DATEONLY
   },
   customer_id: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
   is_attend: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false
+    type: DataTypes.BOOLEAN
   },
   reason_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: DataTypes.INTEGER
   },
   group_ids: {
-    type: DataTypes.INTEGER,
-    allowNull: true
+    type: DataTypes.INTEGER
   },
   teacher_ids: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: DataTypes.INTEGER
   },
   lesson_type_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: DataTypes.INTEGER
   },
   subject_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: DataTypes.INTEGER
   },
   room_id: {
     type: DataTypes.INTEGER,
     allowNull: true
   },
   attendance_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: DataTypes.INTEGER
   },
   comission: {
     type: DataTypes.FLOAT(10, 2).UNSIGNED,
-    allowNull: false,
     defaultValue: .0
   },
   time_from: {
-    type: DataTypes.DATE,
-    allowNull: false
+    type: DataTypes.DATE
   },
   time_to: {
-    type: DataTypes.DATE,
-    allowNull: false
+    type: DataTypes.DATE
   },
   status: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: DataTypes.INTEGER
   },
   note: {
-    type: DataTypes.STRING(2000),
-    allowNull: true
+    type: DataTypes.STRING(2000)
   },
   topic: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: DataTypes.STRING
   }
 });
 
