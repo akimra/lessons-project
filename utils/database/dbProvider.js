@@ -6,15 +6,15 @@ const DbProvider = {
   models,
   sequelize,
 
-  createManyLessons: async (lesson) => {
+  createManyLessons: async function (lesson) {
     lesson.time_from = Date.parse(lesson.time_from);
     lesson.time_to = Date.parse(lesson.time_to);
-    await models.Lesson.bulkCreate(lesson, {validate: true});
+    await this.models.Lesson.bulkCreate(lesson, {validate: true});
   },
 
-  patchLesson: async (event, cus) => {
+  patchLesson: async function (event, cus) {
     if (cus.length > 0) {
-      let mod = await models.Lesson.findAll({
+      let mod = await this.models.Lesson.findAll({
         where: {
           event_id: event
         }
