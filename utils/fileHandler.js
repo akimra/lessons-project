@@ -1,9 +1,45 @@
 const csv = require('fast-csv');
 const fs = require('fs');
-const db = require('./database/dbProvider');
+const dbProvider = require('./database/dbProvider');
 
 const fileHandler = {
-  parseLessons: async (pathFile) => {
+  db: dbProvider,
+
+  // Метод определяет, вносит ли лог изменения на самом деле по нужным атрибутам
+  _isUselessLog: function (logRow) {
+    if (logRow.entity === 'Lesson' && logRow.event === 2) {
+      if (Object.keys(logRow.fields_new).length === 0) return true;
+      if (Object.keys(logRow.fields_new).length === 1 && logRow.fields_new.customer_ids !== undefined) return true
+    }
+
+    return false;
+  },
+
+  _transformData: function (fields_new) {
+    let data = {};
+
+    if (fields_new.gen_branch_id !== undefined) data.gen_branch_id = fields_new.gen_branch_id;
+    if (fields_new.lesson_id !== undefined) data.event_id = fields_new.lesson_id;
+    if (fields_new.lesson_date !== undefined) data.event_date = Date.parse(fields_new.lesson_date);
+    if (fields_new.customer_id !== undefined) data.customer_id = fields_new.customer_id;
+    if (fields_new.is_attend !== undefined) data.is_attend = fields_new.is_attend;
+    if (fields_new.reason_id !== undefined) data.reason_id = fields_new.reason_id;
+    if (fields_new.group_ids !== undefined && fields_new.group_ids.length > 0) data.group_ids = fields_new.group_ids[0];
+    if (fields_new.teacher_ids !== undefined && fields_new.teacher_ids.length > 0) data.teacher_ids = fields_new.teacher_ids[0];
+    if (fields_new.lesson_type_id !== undefined) data.lesson_type_id = fields_new.lesson_type_id;
+    if (fields_new.subject_id !== undefined) data.subject_id = fields_new.subject_id;
+    if (fields_new.room_id !== undefined) data.room_id = fields_new.room_id;
+    if (fields_new.comission !== undefined) data.comission = fields_new.comission;
+    if (fields_new.time_from !== undefined) data.time_from = Date.parse(fields_new.time_from);
+    if (fields_new.time_to !== undefined) data.time_to = Date.parse(fields_new.time_to);
+    if (fields_new.status !== undefined) data.status = fields_new.status;
+    if (fields_new.note !== undefined) data.note = fields_new.note;
+    if (fields_new.topic !== undefined) data.topic = fields_new.topic;
+
+    return data;
+  },
+
+  parseLessons: async function (pathFile) {
     let result = {};
     let lessonsArray = [];
 
@@ -20,7 +56,7 @@ const fileHandler = {
     .on('end', async rowCount => {
       console.log(`${rowCount} rows parsed`);
       try {
-        await db.createManyLessons(lessonsArray);
+        await this.db.createManyLessons(lessonsArray);
       } catch (err) {
         console.log(err);
       }
@@ -29,47 +65,28 @@ const fileHandler = {
     return result;
   },
 
-  patchLogs: async (pathFile) => {
+  patchLogs: async function (pathFile) {
     let result = {};
 
     csv.parseFile(pathFile, {headers: true})
     .on('error', err => {
-      console.log("FileHandler Error: Cant parse csv", error);
+      console.log("FileHandler Error: Cant parse csv", err);
       result.error = true;
       result.reason = 'FileHandler Error: Cant parse csv';
       result.errorObject = err;
     })
     .on('data', row => {
-      const fields_new = json.parse(row.fields_new);
-      let data = {};
-      
-      data.gen_branch_id = fields_new.gen_branch_id;
-      data.event_id = fields_new.lesson_id; //
-      data.event_date = Date.parse(fields_new.lesson_date);
-      data.customer_ids = fields_new.customer_ids;
-      data.is_attend = fields_new.is_attend;
-      //////////////////
-      reason_id = fields_new.reason_id;
-      group_ids = fields_new.group_ids[0]; //
-      teacher_ids = fields_new.teacher_ids[0];//
-      lesson_type_id = fields_new.lesson_type_id;
-      subject_id = fields_new.subject_id;
-      room_id = fields_new.room_id;
-      comission = fields_new.comission;
-      time_from = fields_new.time_from;
-      time_to = fields_new.time_to;
-      status = fields_new.status;
-      note = fields_new.note;
-      topic = fields_new.topic;
-
-      // TEST
-      if (fields_new.customer_id != undefined) {
-        console.log('CUSTOMER ID CHECKED');
+      if (row.event === 2 && this._isUselessLog(row)) {
+        return;
       }
+      const fields_new = JSON.parse(row.fields_new);
+      let data = this._transformData(fields_new);
+      console.log(data);
+
       //--------------
       if (row.entity === 'Lesson') {
         event_id = row.entity_id;
-        db.patchLesson(event_id, customer_ids);
+        
 
         // определяем тип события в логе, затем выполняем соответствующие действия
         switch (row.event) {
@@ -80,7 +97,6 @@ const fileHandler = {
       } else {
 
       }
-      //db.patchLesson(event_id, customer_ids);
     })
     .on('end', async rowCount => {
       console.log(`${rowCount} patches applied`);
