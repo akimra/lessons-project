@@ -7,7 +7,7 @@ const fileHandler = {
 
   // Метод определяет, вносит ли лог изменения на самом деле по нужным атрибутам
   _isUselessLog: function (logRow) {
-    if (logRow.entity === 'Lesson' && logRow.event === 2) {
+    if (logRow.entity === 'Lesson') {
       if (Object.keys(logRow.fields_new).length === 0) return true;
       if (Object.keys(logRow.fields_new).length === 1 && logRow.fields_new.customer_ids !== undefined) return true
     }
@@ -85,17 +85,25 @@ const fileHandler = {
 
       //--------------
       if (row.entity === 'Lesson') {
-        event_id = row.entity_id;
+        data.event_id = row.entity_id;
         
 
         // определяем тип события в логе, затем выполняем соответствующие действия
         switch (row.event) {
           case 1:
+            this.db.createLesson(data);
+            break;
+          case 2:
+            this.db.updateLessons(data);
+            break;
+          case 3:
+            this.db.deleteLessons(data.entity_id);
+            break;
           default: break;
         }
 
-      } else {
-
+      } else  if (row.entity === 'LessonDetails'){
+        
       }
     })
     .on('end', async rowCount => {
