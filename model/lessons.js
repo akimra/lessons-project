@@ -19,8 +19,7 @@ const Lesson = sequelize.define("Lesson", {
     type: DataTypes.DATEONLY
   },
   customer_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    type: DataTypes.INTEGER
   },
   is_attend: {
     type: DataTypes.BOOLEAN
@@ -66,6 +65,14 @@ const Lesson = sequelize.define("Lesson", {
   topic: {
     type: DataTypes.STRING
   }
+},
+{
+  indexes: [
+    {
+      using: 'BTREE',
+      fields: ['event_id']
+    }
+  ]
 });
 
 module.exports = Lesson;

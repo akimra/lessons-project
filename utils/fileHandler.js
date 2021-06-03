@@ -4,6 +4,8 @@ const dbProvider = require('./database/dbProvider');
 
 const fileHandler = {
   db: dbProvider,
+  MAX_QUEUE_SIZE: 50,
+  queue: Array(),
 
   // Метод определяет, вносит ли лог изменения на самом деле по нужным атрибутам
   _isUselessLog: function (logRow) {
@@ -22,7 +24,6 @@ const fileHandler = {
     if (fields_new.lesson_id !== undefined) data.event_id = fields_new.lesson_id;
     if (fields_new.lesson_date !== undefined) data.event_date = Date.parse(fields_new.lesson_date);
     if (fields_new.customer_id !== undefined) data.customer_id = fields_new.customer_id;
-    if (fields_new.is_attend !== undefined) data.is_attend = fields_new.is_attend;
     if (fields_new.reason_id !== undefined) data.reason_id = fields_new.reason_id;
     if (fields_new.group_ids !== undefined && fields_new.group_ids.length > 0) data.group_ids = fields_new.group_ids[0];
     if (fields_new.teacher_ids !== undefined && fields_new.teacher_ids.length > 0) data.teacher_ids = fields_new.teacher_ids[0];
@@ -59,7 +60,7 @@ const fileHandler = {
         await this.db.createManyLessons(lessonsArray);
       } catch (err) {
         console.log(err);
-      }
+      };
     });
 
     return result;
@@ -75,39 +76,48 @@ const fileHandler = {
       result.reason = 'FileHandler Error: Cant parse csv';
       result.errorObject = err;
     })
-    .on('data', row => {
+    .on('data', async row => {
+      
       if (row.event === 2 && this._isUselessLog(row)) {
         return;
       }
+      //console.log(this.queue.length);
+      if (this.queue.length > this.MAX_QUEUE_SIZE) {
+        Promise.allSettled(this.queue);
+        this.queue.splice(0, this.queue.length);
+      }
+
       const fields_new = JSON.parse(row.fields_new);
       let data = this._transformData(fields_new);
-      console.log(data);
 
       //--------------
-      if (row.entity === 'Lesson') {
-        data.event_id = row.entity_id;
+      if (row.enitity === 'Lesson') {
+        data.event_id = row.enitity_id;
         
 
         // определяем тип события в логе, затем выполняем соответствующие действия
-        switch (row.event) {
+        switch (Number.parseInt(row.event)) {
           case 1:
-            this.db.createLesson(data);
+            this.queue.push(this.db.createLesson(data));
             break;
           case 2:
-            this.db.updateLessons(data);
+            this.queue.push(this.db.updateLessons(data));
             break;
           case 3:
-            this.db.deleteLessons(data.entity_id);
+            this.queue.push(this.db.deleteLessons(data.event_id));
             break;
           default: break;
         }
 
-      } else  if (row.entity === 'LessonDetails'){
-        
+      } else  if (row.enitity === 'LessonDetails'){
+        if (row.is_attend !== undefined) data.is_attend = row.is_attend;
+
+
       }
     })
     .on('end', async rowCount => {
       console.log(`${rowCount} patches applied`);
+      this.db.close();
     });
 
     return result;

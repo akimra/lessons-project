@@ -10,9 +10,9 @@ const homeRouter = require('./routes/home');
 let logStream;
 
 //Тестируем подключение к базе
-const sequelize = require('./utils/database/db');
+const dbProvider = require('./utils/database/dbProvider');
 
-sequelize.authenticate()
+dbProvider.sequelize.authenticate()
 .then(res => console.log('db connection is ok'))
 .catch(err => console.log('error while connecting to database: ', err));
 
@@ -49,7 +49,7 @@ app.use(morgan('common', {
 
 app.use('/', homeRouter);
 
-sequelize.sync()
+dbProvider.sequelize.sync()
 .then(() => {
   app.listen(port, () => console.log(`server is running on ${port}`));
 });
