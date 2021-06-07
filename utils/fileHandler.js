@@ -4,8 +4,6 @@ const dbProvider = require('./database/dbProvider');
 
 const fileHandler = {
   db: dbProvider,
-  MAX_QUEUE_SIZE: 50,
-  queue: Array(),
 
   // Метод определяет, вносит ли лог изменения на самом деле по нужным атрибутам
   _isUselessLog: function (logRow) {
@@ -68,6 +66,7 @@ const fileHandler = {
 
   patchLogs: async function (pathFile) {
     let result = {};
+    applyingDate = new Date(1621287867000 - 1000 * 60 * 60 * 12) // применение логов за последние 12 часов
 
     csv.parseFile(pathFile, {headers: true})
     .on('error', err => {
@@ -77,20 +76,14 @@ const fileHandler = {
       result.errorObject = err;
     })
     .on('data', async row => {
-      
-      if (row.event === 2 && this._isUselessLog(row)) {
+      // max date 1621287867000
+      if (row.event === 2 && this._isUselessLog(row) || Date.parse(row.date_time) < applyingDate) {
         return;
-      }
-      //console.log(this.queue.length);
-      if (this.queue.length > this.MAX_QUEUE_SIZE) {
-        Promise.allSettled(this.queue);
-        this.queue.splice(0, this.queue.length);
       }
 
       const fields_new = JSON.parse(row.fields_new);
       let data = this._transformData(fields_new);
 
-      //--------------
       if (row.enitity === 'Lesson') {
         data.event_id = row.enitity_id;
         
@@ -98,26 +91,37 @@ const fileHandler = {
         // определяем тип события в логе, затем выполняем соответствующие действия
         switch (Number.parseInt(row.event)) {
           case 1:
-            this.queue.push(this.db.createLesson(data));
+            await this.db.createLesson(data);
             break;
           case 2:
-            this.queue.push(this.db.updateLessons(data));
+            await this.db.updateLessons(data);
             break;
           case 3:
-            this.queue.push(this.db.deleteLessons(data.event_id));
+            await this.db.deleteLessons(data.event_id);
             break;
           default: break;
         }
 
       } else  if (row.enitity === 'LessonDetails'){
         if (row.is_attend !== undefined) data.is_attend = row.is_attend;
+        data.attendance_id = row.enitity_id;
 
-
+        switch (Number.parseInt(row.event)) {
+          case 1:
+            await this.db.createLessonDetails(data);
+            break;
+          case 2:
+            await this.db.updateLessonDetails(data);
+            break;
+          case 3:
+            await this.db.deleteLessonDetail(data.event_id);
+            break;
+          default: break;
+        }
       }
     })
     .on('end', async rowCount => {
-      console.log(`${rowCount} patches applied`);
-      this.db.close();
+      console.log(`${rowCount} rows parsed`);
     });
 
     return result;

@@ -65,6 +65,39 @@ const DbProvider = {
     } catch (e) {
       console.log(`DbProviderError: error while saving `, e);
     }
+  },
+
+  createLessonDetails: async function (data) {
+    try {
+      // Определим урок, к которому относится сущность LessonDetails
+      let lessons = await this.models.Lesson.findAll({
+        where: {
+          lesson_id: data.event_id
+        }
+      });
+      //Если такие уроки есть
+      if (lessons.length) {
+        // и если к ним уже привязаны другие сущности LessonDetails - создаем новую связку Lesson <-> LessonDetails
+        // с теми же данными Lesson, но пустыми данными LessonDetails
+        if (lessons[0].attendance_id) {
+          let copyLesson = lessons[0];
+          copyLesson.id = null;
+          copyLesson.customer_id = null;
+          copyLesson.is_attend = null;
+          copyLesson.reason_id = null;
+        }
+      }
+    } catch (e) {
+
+    }
+  },
+
+  updateLessonDetails: async function () {
+
+  },
+
+  deleteLessonDetails: async function () {
+
   }
 }
 
