@@ -1,5 +1,6 @@
 const csv = require('fast-csv');
 const fs = require('fs');
+const path = require('path');
 const dbProvider = require('./database/dbProvider');
 
 const fileHandler = {
@@ -125,6 +126,33 @@ const fileHandler = {
     });
 
     return result;
+  },
+
+  exportToCsv: async function (cb) {
+    let output = path.join(__dirname, "../", 'files', 'out.csv');
+    let lessons = await this.db.getAllLessons();
+
+    lessons = lessons.map((l) => l.dataValues).map((l) => {
+      l.time_from = `${l.time_from.getFullYear()}-${l.time_from.getMonth()}-${l.time_from.getDate()} ${l.time_from.toTimeString().substring(0, 8)}`;
+      l.time_to = `${l.time_to.getFullYear()}-${l.time_to.getMonth()}-${l.time_to.getDate()} ${l.time_to.toTimeString().substring(0, 8)}`;
+      return l;
+    });
+    try {
+      fs.writeFileSync(output, "");
+    } catch (e) {
+      console.error('fileHandlerError: error while creating output file', e);
+      output = {error: true, reason: "Creating file failed"};
+    }
+
+    csv.writeToPath(output, lessons, {headers: true})
+      .on('error', e => {
+        console.error('fileHandlerError: error while writing csv in file', e);
+        output = {error: true, reason: "Writing to csv file failed"};
+      })
+      .on('finish', () => {
+        console.log('Export to csv done');
+        cb(output);
+      });
   }
 }
 

@@ -1,33 +1,31 @@
 const models = require('../../model');
-const path = require('path');
-const { Sequelize } = require('sequelize');
+const sequelize = require('./db');
 
 const DbProvider = {
   models,
-  sequelize: new Sequelize('lessons', '', null, {
-    dialect: 'sqlite',
-    storage: path.join(__dirname, '../../storage/lessons.db'),
-    pool: {
-      max: 50, //максимальное кол-во соединений в пуле
-      min: 0, //минимальное кол-во соединений в пуле
-      acquire: 30000, //время в миллисекундах, в течение которого будет осуществляться попытка установить соединение, прежде чем будет сгенерировано исключение
-      idle: 10000, //время простоя в миллисекундах, по истечении которого соединение покинет пул
-    },
-  }),
+  sequelize,
+
+  getAllLessons: async function () {
+    try {
+      return await this.models.Lesson.findAll({ attributes: {exclude: ['id'] } });
+    } catch (e) {
+      console.log("DbProviderError: error while getting all lessons ", e);
+    }
+  },
 
   createLesson: async function (lesson) {
     try {
       await this.models.Lesson.create(lesson);
     } catch (e) {
-      console.log(`DbProviderError: error while updating ${lesson.event_id} lesson `, e);
+      console.log(`DbProviderError: error while creating ${lesson.event_id} lesson `, e);
     }
   },
 
   createManyLessons: async function (lesson) {
     try {
       lesson.time_from = Date.parse(lesson.time_from);
-    lesson.time_to = Date.parse(lesson.time_to);
-    await this.models.Lesson.bulkCreate(lesson, {validate: true});
+      lesson.time_to = Date.parse(lesson.time_to);
+      await this.models.Lesson.bulkCreate(lesson, {validate: true});
     } catch (e) {
       console.log(`DbProviderError: error while bulk creating lessons `, e);
     }
@@ -41,9 +39,10 @@ const DbProvider = {
           event_id: data.event_id
         }
       });
+
       editedLessons.forEach(async (lesson) => await lesson.update(data));
     } catch (e) {
-      console.log(`DbProviderError: error while updating ${data.entity_id} lesson `, e);
+      console.log(`DbProviderError: error while updating ${data.event_id} lesson `, e);
     }
     
   },
@@ -85,6 +84,12 @@ const DbProvider = {
           copyLesson.customer_id = null;
           copyLesson.is_attend = null;
           copyLesson.reason_id = null;
+          copyLesson.comission = .0;
+          // и обновляем данные LessonDetails
+          copyLesson = Object.assign(copyLesson, data);
+          await this.createLesson(copyLesson);
+        } else {
+          await this.updateLessons(lessons[0]);
         }
       }
     } catch (e) {
@@ -92,12 +97,38 @@ const DbProvider = {
     }
   },
 
-  updateLessonDetails: async function () {
+  updateLessonDetails: async function (data) {
+    try {
+      let editedLessonsDetails = await this.models.Lesson.findAll({
+        where: {
+          attendance_id: data.attendance_id
+        }
+      });
 
+      editedLessonsDetails.forEach(async (lesson) => await lesson.update(data));
+    } catch (e) {
+      console.log(`DbProviderError: error while updating ${data.attendance_id} lesson details `, e);
+    }
   },
 
   deleteLessonDetails: async function () {
+    try {
+      let deletedLessonDetails = await this.models.Lesson.findOne({
+        where: {
+          attendance_id: data.attendance_id
+        }
+      });
+      //зануляем данные LessonDetails
+      deletedLessonDetails.attendance_id = null;
+      deletedLessonDetails.customer_id = null;
+      deletedLessonDetails.is_attend = null;
+      deletedLessonDetails.reason_id = null;
+      deletedLessonDetails.comission = null;
 
+      deletedLessonDetails.save();
+    } catch (e) {
+      console.log(`DbProviderError: error while updating ${data.attendance_id} lesson details `, e);
+    }
   }
 }
 

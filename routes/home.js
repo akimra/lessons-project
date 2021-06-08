@@ -3,9 +3,14 @@ const express = require('express');
 const router = express.Router();
 const fileHandler = require('../utils/fileHandler');
 
-/* GET home page. */
-router.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, '../', 'public', 'home.html'));
+router.get('/', async function(req, res) {
+  await fileHandler.exportToCsv((result) => {
+    if (result.error) {
+      res.status(500).send(result.reason);
+    }
+    res.attachment(result);
+    res.status(200).send();
+  });
 });
 
 router.post('/', async function(req, res) {

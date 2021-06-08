@@ -67,10 +67,11 @@ const Lesson = sequelize.define("Lesson", {
   }
 },
 {
+  timestamps: false,
   indexes: [
     {
       using: 'BTREE',
-      fields: ['event_id']
+      fields: ['event_id', 'attendance_id']
     }
   ]
 });
