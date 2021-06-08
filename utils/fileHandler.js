@@ -133,8 +133,12 @@ const fileHandler = {
     let lessons = await this.db.getAllLessons();
 
     lessons = lessons.map((l) => l.dataValues).map((l) => {
+      // формат даты
       l.time_from = `${l.time_from.getFullYear()}-${l.time_from.getMonth()}-${l.time_from.getDate()} ${l.time_from.toTimeString().substring(0, 8)}`;
       l.time_to = `${l.time_to.getFullYear()}-${l.time_to.getMonth()}-${l.time_to.getDate()} ${l.time_to.toTimeString().substring(0, 8)}`;
+      // преобразование bool значения в 0 или 1
+      if (l.is_attend) l.is_attend = 1;
+      else l.is_attend = 0;
       return l;
     });
     try {
